@@ -1,19 +1,23 @@
 #include <Game.h>
+//#include "Matrix3.h"
+//#include "Vector3.h"
 
 static bool flip;
 
-Game::Game() : window(VideoMode(800, 600), "OpenGL Cube Vertex and Fragment Shaders")
+Game::Game() : window(sf::VideoMode(800, 600), "OpenGL Cube Vertex and Fragment Shaders")
 {
 }
 
 Game::~Game() {}
 
+Matrix3 rotMat;
+float rotateAngle = (0.01f);
 void Game::run()
 {
 
 	initialize();
 
-	Event event;
+	sf::Event event;
 
 	while (isRunning) {
 
@@ -23,7 +27,7 @@ void Game::run()
 
 		while (window.pollEvent(event))
 		{
-			if (event.type == Event::Closed)
+			if (event.type == sf::Event::Closed)
 			{
 				isRunning = false;
 			}
@@ -38,6 +42,7 @@ typedef struct
 {
 	float coordinate[3];
 	float color[4];
+	
 } Vertex;
 
 Vertex vertex[8];
@@ -60,63 +65,42 @@ void Game::initialize()
 	GLint isCompiled = 0;
 	GLint isLinked = 0;
 
+	
+
 	glewInit();
 
 	/* Vertices counter-clockwise winding */
-	//front
 	vertex[0].coordinate[0] = -0.5f;
 	vertex[0].coordinate[1] = -0.5f;
-	vertex[0].coordinate[2] = 0.5f;
+	vertex[0].coordinate[2] = 0.0f;
 
 	vertex[1].coordinate[0] = -0.5f;
 	vertex[1].coordinate[1] = 0.5f;
-	vertex[1].coordinate[2] = 0.5f;
+	vertex[1].coordinate[2] = 0.0f;
 
 	vertex[2].coordinate[0] = 0.5f;
 	vertex[2].coordinate[1] = 0.5f;
-	vertex[2].coordinate[2] = 0.5f;
+	vertex[2].coordinate[2] = 0.0f;
 
-	vertex[3].coordinate[0] = -0.5f;
+	vertex[3].coordinate[0] = 0.5f;
 	vertex[3].coordinate[1] = -0.5f;
-	vertex[3].coordinate[2] = 0.5f;
+	vertex[3].coordinate[2] = 0.0f;
 
-	vertex[4].coordinate[0] = 0.5f;
+	vertex[4].coordinate[0] = -0.5f;
 	vertex[4].coordinate[1] = -0.5f;
-	vertex[4].coordinate[2] = 0.5f;
+	vertex[4].coordinate[2] = -1.0f;
 
-	vertex[5].coordinate[0] = 0.5f;
+	vertex[5].coordinate[0] = -0.5f;
 	vertex[5].coordinate[1] = 0.5f;
-	vertex[5].coordinate[2] = 0.5f;
-	
-	
-	//back
-	vertex[0].coordinate[0] = -0.5f;
-	vertex[0].coordinate[1] = -0.5f;
-	vertex[0].coordinate[2] = -0.5f;
+	vertex[5].coordinate[2] = -1.0f;
 
-	vertex[1].coordinate[0] = -0.5f;
-	vertex[1].coordinate[1] = 0.5f;
-	vertex[1].coordinate[2] = -0.5f;
+	vertex[6].coordinate[0] = 0.5f;
+	vertex[6].coordinate[1] = 0.5f;
+	vertex[6].coordinate[2] = -1.0f;
 
-	vertex[2].coordinate[0] = 0.5f;
-	vertex[2].coordinate[1] = 0.5f;
-	vertex[2].coordinate[2] = -0.5f;
-
-	vertex[3].coordinate[0] = -0.5f;
-	vertex[3].coordinate[1] = -0.5f;
-	vertex[3].coordinate[2] = -0.5f;
-
-	vertex[4].coordinate[0] = 0.5f;
-	vertex[4].coordinate[1] = -0.5f;
-	vertex[4].coordinate[2] = -0.5f;
-
-	vertex[5].coordinate[0] = 0.5f;
-	vertex[5].coordinate[1] = 0.5f;
-	vertex[5].coordinate[2] = -0.5f;
-
-	vertex[5].coordinate[0] = 0.5f;
-	vertex[5].coordinate[1] = 0.5f;
-	vertex[5].coordinate[2] = -0.5f;
+	vertex[7].coordinate[0] = 0.5f;
+	vertex[7].coordinate[1] = -0.5f;
+	vertex[7].coordinate[2] = -1.0f;
 
 	vertex[0].color[0] = 0.0f;
 	vertex[0].color[1] = 0.0f;
@@ -148,9 +132,56 @@ void Game::initialize()
 	vertex[5].color[2] = 0.0f;
 	vertex[5].color[3] = 1.0f;
 
-	/*Index of Poly / Triangle to Draw */
-	triangles[0] = 0;   triangles[1] = 1;   triangles[2] = 2; triangles[3] = 3;   triangles[4] = 4;   triangles[5] = 5;
-	triangles[6] = 6; triangles[7] = 7; triangles[8] = 8; triangles[9] = 9; triangles[9] = 10; triangles[9] = 11; triangles[9] = 12;
+	
+
+	//Back Face
+	triangles[6] = 6;  
+	triangles[7] = 5;   
+	triangles[8] = 4;
+	triangles[9] = 6;   
+	triangles[10] = 4;   
+	triangles[11] = 7;
+
+	//Left Face
+	triangles[12] = 1;   
+	triangles[13] = 5;  
+	triangles[14] = 4;
+	triangles[15] = 1;  
+	triangles[16] = 4;  
+	triangles[17] = 0;
+	
+	//Front Face
+	triangles[0] = 2;  
+	triangles[1] = 1;  
+	triangles[2] = 0;
+	triangles[3] = 2;  
+	triangles[4] = 0;  
+	triangles[5] = 3;
+	
+	//Top Face
+	triangles[24] = 6;   
+	triangles[25] = 5;   
+	triangles[26] = 1;
+	triangles[27] = 6;   
+	triangles[28] = 1;  
+	triangles[29] = 2;
+
+	//Bottom Face
+	triangles[30] = 7;   
+	triangles[31] = 4;   
+	triangles[32] = 0;
+	triangles[33] = 7;
+	triangles[34] = 0; 
+	triangles[35] = 3;
+
+	//Right Face
+	triangles[18] = 6;  
+	triangles[19] = 2;  
+	triangles[20] = 3;
+	triangles[21] = 6;  
+	triangles[22] = 3;   
+	triangles[23] = 7;
+
 	/* Create a new VBO using VBO id */
 	glGenBuffers(1, vbo);
 
@@ -199,8 +230,8 @@ void Game::initialize()
 		"in vec4 color;"
 		"out vec4 fColor;"
 		"void main() {"
-		"	fColor = vec4(0.0f, 1.0f, 0.0f, 1.0f);"
-		"fColor = color;"
+		"fColor = vec4(0.0f, 1.0f, 0.0f, 1.0f);"
+		"fColor = color * vec4(1.0f, 1.0f, 0.0f, 1.0f);"
 		"}"; //Fragment Shader Src
 
 	DEBUG_MSG("Setting Up Fragment Shader");
@@ -273,19 +304,22 @@ void Game::update()
 		}
 	}
 
-	//Change vertex data
-	/*vertex[0].coordinate[0] += -0.0001f;
-	vertex[0].coordinate[1] += -0.0001f;
-	vertex[0].coordinate[2] += -0.0001f;
 
-	vertex[1].coordinate[0] += -0.0001f;
-	vertex[1].coordinate[1] += -0.0001f;
-	vertex[1].coordinate[2] += -0.0001f;
+	/*if (sf::Keyboard::isKeyPressed(sf::Keyboard::X))
+	{*/
 
-	vertex[2].coordinate[0] += -0.0001f;
-	vertex[2].coordinate[1] += -0.0001f;
-	vertex[2].coordinate[2] += -0.0001f;
-*/
+		for (int i = 0; i < 8; i++)
+		{
+			Vector3 theRot = Vector3(vertex[i].coordinate[0], vertex[i].coordinate[1], vertex[i].coordinate[2] + .5f);
+			theRot = rotMat.rotationX(theRot, rotateAngle);
+			theRot = rotMat.rotationY(theRot, rotateAngle);
+			vertex[i].coordinate[0] = theRot.getX();
+			vertex[i].coordinate[1] = theRot.getY();
+			vertex[i].coordinate[2] = theRot.getZ() - .5f;
+		//}
+}
+
+
 #if (DEBUG >= 2)
 	DEBUG_MSG("Update up...");
 #endif
